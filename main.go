@@ -28,20 +28,30 @@ var currentWindow = 1
 // Panel sizes
 var panelSize = float32(0.2)
 var sideBarSize = float32(0.025)
+var topPanelHeight = float32(100)
+var topPanelLines = float32(80)
 
 // idk
 var sliderVal = float32(50)
 
-const (
-	winWidth  = 3840
-	winHeight = 2160
+var (
+	winWidth  = float32(3840)
+	winHeight = float32(2160)
 
-	maxVertexBuffer  = 512 * 1024
-	maxElementBuffer = 128 * 1024
+	maxVertexBuffer  = float32(512 * 1024)
+	maxElementBuffer = float32(128 * 1024)
 )
 
 func init() {
 	runtime.LockOSThread()
+
+	if runtime.GOOS == "darwin" {
+		winWidth = 1440
+		winHeight = 900
+
+		topPanelHeight = 50
+		topPanelLines = 40
+	}
 }
 
 var ctx *nk.Context
@@ -51,9 +61,7 @@ var avenirFont *nk.Font
 var aromaFont *nk.Font
 
 func main() {
-	ScreenWidth := 3840
-	ScreenHeight := 2160
-	config := cmd.NewEngineConfig(ScreenWidth, ScreenHeight, 3)
+	config := cmd.NewEngineConfig(int(winWidth), int(winHeight), 3)
 	config.FullScreen = false
 	config.VSync = true
 	config.AntiAliasing = true
@@ -77,8 +85,8 @@ func main() {
 	atlas := nk.NewFontAtlas()
 	nk.NkFontStashBegin(&atlas)
 
-	avenirFont = nk.NkFontAtlasAddFromBytes(atlas, avenirBytes, 40, nil)
-	aromaFont = nk.NkFontAtlasAddFromBytes(atlas, aromaBytes, 40, nil)
+	avenirFont = nk.NkFontAtlasAddFromBytes(atlas, avenirBytes, 18, nil)
+	aromaFont = nk.NkFontAtlasAddFromBytes(atlas, aromaBytes, 18, nil)
 
 	nk.NkFontStashEnd()
 	if avenirFont != nil {
@@ -162,7 +170,7 @@ func gfxMain(win *glfw.Window, ctx *nk.Context, state *State) {
 	//   Top panel
 	//   --------------------------------------------------
 
-	bounds = nk.NkRect(panelSize*winWidth+sideBarSize*winWidth, 0, winWidth-(2*panelSize*winWidth)-(sideBarSize*winWidth), 100)
+	bounds = nk.NkRect(panelSize*winWidth+sideBarSize*winWidth, 0, winWidth-(2*panelSize*winWidth)-(sideBarSize*winWidth), topPanelHeight)
 	nk.NkBegin(ctx, "engine", bounds, nk.WindowNoScrollbar|nk.WindowNoScrollbar)
 
 	ratio = []float32{0.2, 0.2, 0.2, 0.2, 0.2}
@@ -178,9 +186,9 @@ func gfxMain(win *glfw.Window, ctx *nk.Context, state *State) {
 	nk.NkStrokeLine(
 		cb,
 		panelSize*winWidth+sideBarSize*winWidth+lineWidth*float32(ind-1),
-		96,
+		topPanelHeight-4,
 		panelSize*winWidth+sideBarSize*winWidth+lineWidth*float32(ind),
-		96, 5, nk.NkRgb(255, 255, 255),
+		topPanelHeight-4, 5, nk.NkRgb(255, 255, 255),
 	)
 	nk.NkStrokeLine(
 		cb,
@@ -194,7 +202,7 @@ func gfxMain(win *glfw.Window, ctx *nk.Context, state *State) {
 	//nk.NkGroupBegin(ctx, "E", nk.WindowBorder)
 	//nk.NkGroupEnd(ctx)
 
-	nk.NkLayoutRow(ctx, nk.Dynamic, 80, 5, ratio)
+	nk.NkLayoutRow(ctx, nk.Dynamic, topPanelLines, 5, ratio)
 	if nk.NkButtonLabel(ctx, "Scene") == 1 {
 		currentWindow = 1
 	}
@@ -227,7 +235,7 @@ func gfxMain(win *glfw.Window, ctx *nk.Context, state *State) {
 
 	nk.NkEnd(ctx)
 
-	nk.NkPlatformRender(nk.AntiAliasingOn, maxVertexBuffer, maxElementBuffer)
+	nk.NkPlatformRender(nk.AntiAliasingOn, int(maxVertexBuffer), int(maxElementBuffer))
 }
 
 type Option uint8
