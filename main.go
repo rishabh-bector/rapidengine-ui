@@ -29,6 +29,7 @@ var panelSize = float32(0.2)
 var sideBarSize = float32(0.025)
 var topPanelHeight = float32(100)
 var topPanelLines = float32(80)
+var componentGroupHeight = float32(200)
 
 // Font sizes
 var mainFontSize = float32(40)
@@ -61,6 +62,8 @@ func init() {
 
 		topPanelHeight = 50
 		topPanelLines = 40
+
+		componentGroupHeight = 100
 
 		mainFontSize = 18
 	}
