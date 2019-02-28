@@ -31,6 +31,9 @@ var sideBarSize = float32(0.025)
 var topPanelHeight = float32(100)
 var topPanelLines = float32(80)
 
+// Font sizes
+var mainFontSize = float32(40)
+
 // idk
 var sliderVal = float32(50)
 
@@ -42,6 +45,14 @@ var (
 	maxElementBuffer = float32(128 * 1024)
 )
 
+var ctx *nk.Context
+var state *State
+
+var avenirFont *nk.Font
+var aromaFont *nk.Font
+
+var fileBrowser FileBrowser
+
 func init() {
 	runtime.LockOSThread()
 
@@ -51,14 +62,10 @@ func init() {
 
 		topPanelHeight = 50
 		topPanelLines = 40
+
+		mainFontSize = 18
 	}
 }
-
-var ctx *nk.Context
-var state *State
-
-var avenirFont *nk.Font
-var aromaFont *nk.Font
 
 func main() {
 	config := cmd.NewEngineConfig(int(winWidth), int(winHeight), 3)
@@ -73,25 +80,35 @@ func main() {
 	scene := engine.SceneControl.NewScene("main")
 
 	gl.Init()
-
 	ctx = nk.NkPlatformInit(engine.Renderer.Window, nk.PlatformInstallCallbacks)
 
-	avenirFile, _ := os.Open("avenir-next-regular.ttf")
+	fileBrowser = NewFileBrowser()
+	fileBrowser.Active = false
+
+	//   --------------------------------------------------
+	//   Font loading
+	//   --------------------------------------------------
+
+	avenirFile, _ := os.Open("fonts/avenir-next-regular.ttf")
 	avenirBytes, _ := ioutil.ReadAll(avenirFile)
 
-	aromaFile, _ := os.Open("aroma-bold.ttf")
+	aromaFile, _ := os.Open("fonts/aroma-bold.ttf")
 	aromaBytes, _ := ioutil.ReadAll(aromaFile)
 
 	atlas := nk.NewFontAtlas()
 	nk.NkFontStashBegin(&atlas)
 
-	avenirFont = nk.NkFontAtlasAddFromBytes(atlas, avenirBytes, 18, nil)
-	aromaFont = nk.NkFontAtlasAddFromBytes(atlas, aromaBytes, 18, nil)
+	avenirFont = nk.NkFontAtlasAddFromBytes(atlas, avenirBytes, mainFontSize, nil)
+	aromaFont = nk.NkFontAtlasAddFromBytes(atlas, aromaBytes, mainFontSize, nil)
 
 	nk.NkFontStashEnd()
 	if avenirFont != nil {
 		nk.NkStyleSetFont(ctx, avenirFont.Handle())
 	}
+
+	//   --------------------------------------------------
+	//   Setup
+	//   --------------------------------------------------
 
 	state = &State{
 		bgColor: nk.NkRgba(28, 48, 62, 255),
@@ -116,6 +133,7 @@ func render(renderer *cmd.Renderer, inputs *input.Input) {
 func gfxMain(win *glfw.Window, ctx *nk.Context, state *State) {
 	nk.NkPlatformNewFrame()
 
+	fileBrowser.Update()
 	//   --------------------------------------------------
 	//   Left sidebar
 	//   --------------------------------------------------
