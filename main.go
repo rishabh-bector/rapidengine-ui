@@ -5,7 +5,6 @@ package main
 //   --------------------------------------------------
 
 import (
-	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
@@ -76,8 +75,10 @@ func main() {
 	config.GammaCorrection = true
 	config.ShowFPS = false
 	engine = cmd.NewEngine(&config, render)
-	engine.Renderer.MainCamera.SetSpeed(60.0 / 20.0)
+	engine.Renderer.MainCamera.SetSpeed(60.0 / 120.0)
 	scene := engine.SceneControl.NewScene("main")
+
+	initMaterialView()
 
 	gl.Init()
 	ctx = nk.NkPlatformInit(engine.Renderer.Window, nk.PlatformInstallCallbacks)
@@ -167,16 +168,13 @@ func gfxMain(win *glfw.Window, ctx *nk.Context, state *State) {
 	bounds = nk.NkRect(winWidth-(panelSize*winWidth), 0, panelSize*winWidth, winHeight)
 	nk.NkBegin(ctx, "", bounds, nk.WindowNoScrollbar)
 
-	nk.NkLayoutRowDynamic(ctx, 100, 1)
-	nk.NkLabel(ctx, "Components", nk.TextAlignCentered|nk.TextAlignMiddle)
-
 	ratio := []float32{0.2, 0.8}
-	nk.NkLayoutRow(ctx, nk.Dynamic, 50, 2, ratio)
-	nk.NkLabel(ctx, fmt.Sprintf("%v", sliderVal), nk.TextAlignCentered|nk.TextAlignMiddle)
-	nk.NkSliderFloat(ctx, 0, &sliderVal, 100, 1)
+	//nk.NkLayoutRow(ctx, nk.Dynamic, 50, 2, ratio)
+	//nk.NkLabel(ctx, fmt.Sprintf("%v", sliderVal), nk.TextAlignCentered|nk.TextAlignMiddle)
+	//nk.NkSliderFloat(ctx, 0, &sliderVal, 100, 1)
 
-	nk.NkLayoutRowDynamic(ctx, 50, 1)
-	nk.NkButtonLabel(ctx, "click me")
+	//nk.NkLayoutRowDynamic(ctx, 50, 1)
+	//nk.NkButtonLabel(ctx, "click me")
 
 	if currentWindow == 2 {
 		rightMaterial()
