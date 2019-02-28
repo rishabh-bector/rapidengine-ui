@@ -169,7 +169,7 @@ func gfxMain(win *glfw.Window, ctx *nk.Context, state *State) {
 	//   --------------------------------------------------
 
 	bounds = nk.NkRect(winWidth-(panelSize*winWidth), 0, panelSize*winWidth, winHeight)
-	nk.NkBegin(ctx, "", bounds, nk.WindowNoScrollbar)
+	update := nk.NkBegin(ctx, "", bounds, nk.WindowMinimizable)
 
 	ratio := []float32{0.2, 0.8}
 	//nk.NkLayoutRow(ctx, nk.Dynamic, 50, 2, ratio)
@@ -179,8 +179,10 @@ func gfxMain(win *glfw.Window, ctx *nk.Context, state *State) {
 	//nk.NkLayoutRowDynamic(ctx, 50, 1)
 	//nk.NkButtonLabel(ctx, "click me")
 
-	if currentWindow == 2 {
-		rightMaterial()
+	if update != nk.WindowClosed {
+		if currentWindow == 2 {
+			rightMaterial()
+		}
 	}
 
 	nk.NkEnd(ctx)

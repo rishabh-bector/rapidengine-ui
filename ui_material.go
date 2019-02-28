@@ -18,6 +18,8 @@ var currentMaterial material.MaterialUI
 
 var materialViewChild *child.Child3D
 
+var col = nk.NkRgb(0, 0, 0)
+
 func initMaterialView() {
 	engine.TextureControl.NewTexture("./maps/col.jpg", "col", "mipmap")
 	engine.TextureControl.NewTexture("./maps/nrm.jpg", "nrm", "mipmap")
@@ -36,7 +38,7 @@ func initMaterialView() {
 
 	materialViewChild.AttachModel(engine.GeometryControl.LoadModel("../rapidengine/assets/obj/sphere_uv.obj", currentMaterial))
 	materialViewChild.AttachModel(geometry.Model{
-		Meshes:    []geometry.Mesh{geometry.NewPlane(200, 200, 1000, nil, 1)},
+		Meshes:    []geometry.Mesh{geometry.NewPlane(200, 200, 100, nil, 1)},
 		Materials: map[int]material.Material{0: currentMaterial},
 	})
 	materialViewChild.X = -100
@@ -89,34 +91,36 @@ func rightMaterial() {
 
 	// Info
 	nk.NkLayoutRowDynamic(ctx, componentGroupHeight, 1)
-	nk.NkGroupBegin(ctx, "Info", nk.WindowBorder|nk.WindowTitle)
-	nk.NkLayoutRow(ctx, nk.Dynamic, componentGroupHeight/2, 2, ratio)
-	nk.NkLabel(ctx, fmt.Sprintf("%v", *currentMaterial.GetScale()), nk.TextAlignCentered|nk.TextAlignMiddle)
-	nk.NkSliderFloat(ctx, 0, currentMaterial.GetScale(), 1, 0.01)
-	nk.NkGroupEnd(ctx)
+	e := nk.NkGroupBegin(ctx, "Info", nk.WindowBorder|nk.WindowTitle)
+	if e > 0 {
+		nk.NkLayoutRow(ctx, nk.Dynamic, componentGroupHeight/2, 2, ratio)
+		nk.NkLabel(ctx, fmt.Sprintf("%v", *currentMaterial.GetScale()), nk.TextAlignCentered|nk.TextAlignMiddle)
+		nk.NkSliderFloat(ctx, 0, currentMaterial.GetScale(), 1, 0.01)
+		nk.NkGroupEnd(ctx)
+	}
 
 	// Diffuse
 	nk.NkLayoutRowDynamic(ctx, componentGroupHeight, 1)
 
-	if nk.NkGroupBegin(ctx, "Diffuse", nk.WindowBorder|nk.WindowTitle|nk.WindowMinimizable|nk.WindowNoScrollbar) > 0 {
+	if nk.NkGroupBegin(ctx, "Diffuse", nk.WindowBorder|nk.WindowTitle|nk.WindowNoScrollbar) > 0 {
 		nk.NkLayoutRow(ctx, nk.Dynamic, componentGroupHeight/2, 2, ratio)
 		nk.NkLabel(ctx, fmt.Sprintf("%v", *currentMaterial.GetDiffuseScalar()), nk.TextAlignCentered|nk.TextAlignMiddle)
 		nk.NkSliderFloat(ctx, 0, currentMaterial.GetDiffuseScalar(), 1, 0.01)
+		nk.NkGroupEnd(ctx)
 	}
-	nk.NkGroupEnd(ctx)
 
 	// Normal
 	nk.NkLayoutRowDynamic(ctx, componentGroupHeight, 1)
-	if nk.NkGroupBegin(ctx, "Normal", nk.WindowBorder|nk.WindowTitle|nk.WindowMinimizable|nk.WindowNoScrollbar) > 0 {
+	if nk.NkGroupBegin(ctx, "Normal", nk.WindowBorder|nk.WindowTitle|nk.WindowNoScrollbar) > 0 {
 		nk.NkLayoutRow(ctx, nk.Dynamic, componentGroupHeight/2, 2, ratio)
 		nk.NkLabel(ctx, fmt.Sprintf("%v", *currentMaterial.GetNormalScalar()), nk.TextAlignCentered|nk.TextAlignMiddle)
 		nk.NkSliderFloat(ctx, 0, currentMaterial.GetNormalScalar(), 1, 0.01)
+		nk.NkGroupEnd(ctx)
 	}
-	nk.NkGroupEnd(ctx)
 
 	// Height
 	nk.NkLayoutRowDynamic(ctx, componentGroupHeight, 1)
-	if nk.NkGroupBegin(ctx, "Height", nk.WindowBorder|nk.WindowTitle|nk.WindowMinimizable) > 0 {
+	if nk.NkGroupBegin(ctx, "Height", nk.WindowBorder|nk.WindowTitle) > 0 {
 		nk.NkLayoutRow(ctx, nk.Dynamic, componentGroupHeight/4, 2, ratio)
 		nk.NkLabel(ctx, fmt.Sprintf("%v", *currentMaterial.GetParallaxDisplacement()), nk.TextAlignCentered|nk.TextAlignMiddle)
 		nk.NkSliderFloat(ctx, 0, currentMaterial.GetParallaxDisplacement(), 1, 0.01)
@@ -124,35 +128,45 @@ func rightMaterial() {
 		nk.NkLayoutRow(ctx, nk.Dynamic, componentGroupHeight/4, 2, ratio)
 		nk.NkLabel(ctx, fmt.Sprintf("%v", *currentMaterial.GetVertexDisplacement()), nk.TextAlignCentered|nk.TextAlignMiddle)
 		nk.NkSliderFloat(ctx, 0, currentMaterial.GetVertexDisplacement(), 10, 0.1)
+
+		nk.NkGroupEnd(ctx)
 	}
-	nk.NkGroupEnd(ctx)
 
 	// Metallic
 	nk.NkLayoutRowDynamic(ctx, componentGroupHeight, 1)
-	if nk.NkGroupBegin(ctx, "Metallic", nk.WindowBorder|nk.WindowTitle|nk.WindowMinimizable|nk.WindowNoScrollbar) > 0 {
+	if nk.NkGroupBegin(ctx, "Metallic", nk.WindowBorder|nk.WindowTitle|nk.WindowNoScrollbar) > 0 {
 		nk.NkLayoutRow(ctx, nk.Dynamic, componentGroupHeight/2, 2, ratio)
 		nk.NkLabel(ctx, fmt.Sprintf("%v", *currentMaterial.GetMetallicScalar()), nk.TextAlignCentered|nk.TextAlignMiddle)
 		nk.NkSliderFloat(ctx, 0, currentMaterial.GetMetallicScalar(), 1, 0.01)
+		nk.NkGroupEnd(ctx)
 	}
-	nk.NkGroupEnd(ctx)
 
 	// Roughness
 	nk.NkLayoutRowDynamic(ctx, componentGroupHeight, 1)
-	if nk.NkGroupBegin(ctx, "Roughness", nk.WindowBorder|nk.WindowTitle|nk.WindowMinimizable|nk.WindowNoScrollbar) > 0 {
+	if nk.NkGroupBegin(ctx, "Roughness", nk.WindowBorder|nk.WindowTitle|nk.WindowNoScrollbar) > 0 {
 		nk.NkLayoutRow(ctx, nk.Dynamic, componentGroupHeight/2, 2, ratio)
 		nk.NkLabel(ctx, fmt.Sprintf("%v", *currentMaterial.GetRoughnessScalar()), nk.TextAlignCentered|nk.TextAlignMiddle)
 		nk.NkSliderFloat(ctx, 0, currentMaterial.GetRoughnessScalar(), 1, 0.01)
+		nk.NkGroupEnd(ctx)
 	}
-	nk.NkGroupEnd(ctx)
 
 	// AO
 	nk.NkLayoutRowDynamic(ctx, componentGroupHeight, 1)
-	if nk.NkGroupBegin(ctx, "Ambient Occlusion", nk.WindowBorder|nk.WindowTitle|nk.WindowMinimizable|nk.WindowNoScrollbar) > 0 {
+	if nk.NkGroupBegin(ctx, "Ambient Occlusion", nk.WindowBorder|nk.WindowTitle|nk.WindowNoScrollbar) > 0 {
 		nk.NkLayoutRow(ctx, nk.Dynamic, componentGroupHeight/2, 2, ratio)
 		nk.NkLabel(ctx, fmt.Sprintf("%v", *currentMaterial.GetAOScalar()), nk.TextAlignCentered|nk.TextAlignMiddle)
 		nk.NkSliderFloat(ctx, 0, currentMaterial.GetAOScalar(), 1, 0.01)
+		nk.NkGroupEnd(ctx)
 	}
-	nk.NkGroupEnd(ctx)
+
+	// Col
+	nk.NkLayoutRowDynamic(ctx, 500, 1)
+	c := nk.NkGroupBegin(ctx, "E", nk.WindowBorder|nk.WindowTitle|nk.WindowNoScrollbar|nk.WindowMinimizable)
+	if c > 0 {
+		nk.NkLayoutRowDynamic(ctx, 300, 1)
+		col = nk.NkColorPicker(ctx, col, nk.ColorFormatRGB)
+		nk.NkGroupEnd(ctx)
+	}
 
 	// Render child
 	engine.Renderer.RenderChild(materialViewChild)
