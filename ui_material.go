@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"rapidengine/child"
-	"rapidengine/geometry"
 	"rapidengine/lighting"
 	"rapidengine/material"
 
@@ -17,6 +16,7 @@ import (
 var currentMaterial material.MaterialUI
 
 var materialViewChild *child.Child3D
+var materialPointLight *lighting.PointLight
 
 var col = nk.NkRgb(0, 0, 0)
 
@@ -31,32 +31,32 @@ func initMaterialView() {
 	currentMaterial = engine.MaterialControl.NewPBRMaterial("e")
 
 	currentMaterial.AttachDiffuseMap(engine.TextureControl.GetTexture("col"))
-	currentMaterial.AttachNormalMap(engine.TextureControl.GetTexture("nrm"))
-	currentMaterial.AttachHeightMap(engine.TextureControl.GetTexture("disp"))
-	currentMaterial.AttachRoughnessMap(engine.TextureControl.GetTexture("rough"))
-	currentMaterial.AttachAOMap(engine.TextureControl.GetTexture("ao"))
+	//currentMaterial.AttachNormalMap(engine.TextureControl.GetTexture("nrm"))
+	//currentMaterial.AttachHeightMap(engine.TextureControl.GetTexture("disp"))
+	//currentMaterial.AttachRoughnessMap(engine.TextureControl.GetTexture("rough"))
+	//currentMaterial.AttachAOMap(engine.TextureControl.GetTexture("ao"))
 
-	materialViewChild.AttachModel(engine.GeometryControl.LoadModel("../rapidengine/assets/obj/sphere_uv.obj", currentMaterial))
-	materialViewChild.AttachModel(geometry.Model{
+	materialViewChild.AttachModel(engine.GeometryControl.LoadModel("../rapidengine/assets/obj/cube_smooth.obj", currentMaterial))
+	/*materialViewChild.AttachModel(geometry.Model{
 		Meshes:    []geometry.Mesh{geometry.NewPlane(200, 200, 100, nil, 1)},
 		Materials: map[int]material.Material{0: currentMaterial},
 	})
 	materialViewChild.X = -100
-	materialViewChild.Z = -100
+	materialViewChild.Z = -100*/
 	materialViewChild.Model.ComputeTangents()
 	materialViewChild.Model.Meshes[0].ComputeTangents()
 	materialViewChild.AttachMaterial(currentMaterial)
 
-	l := lighting.NewPointLight(
+	materialPointLight = lighting.NewPointLight(
 		[]float32{0.1, 0.1, 0.1},
 		[]float32{500, 500, 500},
 		[]float32{1, 1, 1},
 		1.0, 0.2, 0.05,
 	)
 
-	l.SetPosition([]float32{0, 5, 0})
+	materialPointLight.SetPosition([]float32{2, 5, 2})
 
-	engine.LightControl.InstanceLight(l, 0)
+	engine.LightControl.InstanceLight(materialPointLight, 0)
 }
 
 func leftMaterial() {
@@ -165,6 +165,9 @@ func rightMaterial() {
 	if c > 0 {
 		nk.NkLayoutRowDynamic(ctx, 300, 1)
 		col = nk.NkColorPicker(ctx, col, nk.ColorFormatRGB)
+		materialPointLight.Diffuse[0] = float32(col.R())
+		materialPointLight.Diffuse[1] = float32(col.G())
+		materialPointLight.Diffuse[2] = float32(col.B())
 		nk.NkGroupEnd(ctx)
 	}
 
