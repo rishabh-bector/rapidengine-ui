@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"rapidengine/child"
+	"rapidengine/geometry"
 	"rapidengine/lighting"
 	"rapidengine/material"
 
@@ -19,6 +20,7 @@ var materialViewChild *child.Child3D
 var materialPointLight *lighting.PointLight
 
 var col = nk.NkRgb(0, 0, 0)
+var col2 = nk.NkRgb(0, 0, 0)
 
 func initMaterialView() {
 	engine.TextureControl.NewTexture("./maps/col.jpg", "col", "mipmap")
@@ -31,18 +33,18 @@ func initMaterialView() {
 	currentMaterial = engine.MaterialControl.NewPBRMaterial("e")
 
 	currentMaterial.AttachDiffuseMap(engine.TextureControl.GetTexture("col"))
-	//currentMaterial.AttachNormalMap(engine.TextureControl.GetTexture("nrm"))
-	//currentMaterial.AttachHeightMap(engine.TextureControl.GetTexture("disp"))
-	//currentMaterial.AttachRoughnessMap(engine.TextureControl.GetTexture("rough"))
-	//currentMaterial.AttachAOMap(engine.TextureControl.GetTexture("ao"))
+	currentMaterial.AttachNormalMap(engine.TextureControl.GetTexture("nrm"))
+	currentMaterial.AttachHeightMap(engine.TextureControl.GetTexture("disp"))
+	currentMaterial.AttachRoughnessMap(engine.TextureControl.GetTexture("rough"))
+	currentMaterial.AttachAOMap(engine.TextureControl.GetTexture("ao"))
 
 	materialViewChild.AttachModel(engine.GeometryControl.LoadModel("../rapidengine/assets/obj/cube_smooth.obj", currentMaterial))
-	/*materialViewChild.AttachModel(geometry.Model{
+	materialViewChild.AttachModel(geometry.Model{
 		Meshes:    []geometry.Mesh{geometry.NewPlane(200, 200, 100, nil, 1)},
 		Materials: map[int]material.Material{0: currentMaterial},
 	})
 	materialViewChild.X = -100
-	materialViewChild.Z = -100*/
+	materialViewChild.Z = -100
 	materialViewChild.Model.ComputeTangents()
 	materialViewChild.Model.Meshes[0].ComputeTangents()
 	materialViewChild.AttachMaterial(currentMaterial)
@@ -160,14 +162,43 @@ func rightMaterial() {
 	}
 
 	// Col
-	nk.NkLayoutRowDynamic(ctx, 500, 1)
+	nk.NkLayoutRowDynamic(ctx, 300, 1)
 	c := nk.NkGroupBegin(ctx, "E", nk.WindowBorder|nk.WindowTitle|nk.WindowNoScrollbar|nk.WindowMinimizable)
 	if c > 0 {
-		nk.NkLayoutRowDynamic(ctx, 300, 1)
+		nk.NkLayoutRowDynamic(ctx, 200, 1)
 		col = nk.NkColorPicker(ctx, col, nk.ColorFormatRGB)
 		materialPointLight.Diffuse[0] = float32(col.R())
 		materialPointLight.Diffuse[1] = float32(col.G())
 		materialPointLight.Diffuse[2] = float32(col.B())
+		nk.NkGroupEnd(ctx)
+	}
+
+	// Col
+	nk.NkLayoutRowDynamic(ctx, 300, 1)
+	if nk.NkGroupBegin(ctx, "F", nk.WindowBorder|nk.WindowTitle|nk.WindowNoScrollbar|nk.WindowMinimizable) > 0 {
+		nk.NkLayoutRowDynamic(ctx, 200, 1)
+		col2 = nk.NkColorPicker(ctx, col2, nk.ColorFormatRGB)
+		//engine.LightControl.DirLight[0].Diffuse[0] = float32(col2.R()) * 100
+		//engine.LightControl.DirLight[0].Diffuse[1] = float32(col2.G()) * 100
+		//engine.LightControl.DirLight[0].Diffuse[2] = float32(col2.B()) * 100
+		nk.NkGroupEnd(ctx)
+	}
+
+	nk.NkLayoutRowDynamic(ctx, componentGroupHeight*3, 1)
+	if nk.NkGroupBegin(ctx, "Dirlight", nk.WindowBorder|nk.WindowTitle|nk.WindowNoScrollbar) > 0 {
+
+		nk.NkLayoutRow(ctx, nk.Dynamic, componentGroupHeight/2, 2, ratio)
+		nk.NkLabel(ctx, fmt.Sprintf("X: %v", engine.LightControl.DirLight[0].Direction[0]), nk.TextAlignCentered|nk.TextAlignMiddle)
+		nk.NkSliderFloat(ctx, -1, &engine.LightControl.DirLight[0].Direction[0], 1, 0.01)
+
+		nk.NkLayoutRow(ctx, nk.Dynamic, componentGroupHeight/2, 2, ratio)
+		nk.NkLabel(ctx, fmt.Sprintf("Y: %v", engine.LightControl.DirLight[0].Direction[1]), nk.TextAlignCentered|nk.TextAlignMiddle)
+		nk.NkSliderFloat(ctx, -1, &engine.LightControl.DirLight[0].Direction[1], 1, 0.01)
+
+		nk.NkLayoutRow(ctx, nk.Dynamic, componentGroupHeight/2, 2, ratio)
+		nk.NkLabel(ctx, fmt.Sprintf("Z: %v", engine.LightControl.DirLight[0].Direction[2]), nk.TextAlignCentered|nk.TextAlignMiddle)
+		nk.NkSliderFloat(ctx, -1, &engine.LightControl.DirLight[0].Direction[2], 1, 0.01)
+
 		nk.NkGroupEnd(ctx)
 	}
 
