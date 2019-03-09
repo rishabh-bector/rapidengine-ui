@@ -6,6 +6,7 @@ import (
 	"rapidengine/geometry"
 	"rapidengine/lighting"
 	"rapidengine/material"
+	"sort"
 
 	"nuklear-golang/nk"
 )
@@ -15,6 +16,7 @@ import (
 //   --------------------------------------------------
 
 var currentMaterial material.MaterialUI
+var allMaterials []string
 
 var materialViewChild *child.Child3D
 var materialPointLight *lighting.PointLight
@@ -22,15 +24,42 @@ var materialPointLight *lighting.PointLight
 var col = nk.NkRgb(0, 0, 0)
 var col2 = nk.NkRgb(0, 0, 0)
 
+var roughORsmooth int32
+
 func initMaterialView() {
-	engine.TextureControl.NewTexture("./maps/col.jpg", "col", "mipmap")
-	engine.TextureControl.NewTexture("./maps/nrm.jpg", "nrm", "mipmap")
-	engine.TextureControl.NewTexture("./maps/disp.jpg", "disp", "mipmap")
-	engine.TextureControl.NewTexture("./maps/rough.jpg", "rough", "mipmap")
-	engine.TextureControl.NewTexture("./maps/ao.jpg", "ao", "mipmap")
+
+	//   --------------------------------------------------
+	//   View Child
+	//   --------------------------------------------------
 
 	materialViewChild = engine.ChildControl.NewChild3D()
-	currentMaterial = engine.MaterialControl.NewPBRMaterial("e")
+
+	materialViewChild.AttachModel(engine.GeometryControl.LoadModel("../rapidengine/assets/obj/sphere_uv_high.obj", currentMaterial))
+	materialViewChild.AttachModel(geometry.Model{
+		Meshes:    []geometry.Mesh{geometry.NewPlane(20, 20, 100, nil, 1)},
+		Materials: map[int]material.Material{0: currentMaterial},
+	})
+	/*materialViewChild.AttachModel(geometry.Model{
+		Meshes:    []geometry.Mesh{geometry.NewCube()},
+		Materials: map[int]material.Material{0: currentMaterial},
+	})*/
+	//materialViewChild.X = -10
+	//materialViewChild.Z = -10
+	//materialViewChild.Model.ComputeTangents()
+	materialViewChild.Model.Meshes[0].ComputeTangents()
+	materialViewChild.AttachMaterial(currentMaterial)
+
+	//   --------------------------------------------------
+	//   Rocks
+	//   --------------------------------------------------
+
+	engine.TextureControl.NewTexture("./maps/rocks1/col.jpg", "col", "mipmap")
+	engine.TextureControl.NewTexture("./maps/rocks1/nrm.jpg", "nrm", "mipmap")
+	engine.TextureControl.NewTexture("./maps/rocks1/disp.jpg", "disp", "mipmap")
+	engine.TextureControl.NewTexture("./maps/rocks1/rough.jpg", "rough", "mipmap")
+	engine.TextureControl.NewTexture("./maps/rocks1/ao.jpg", "ao", "mipmap")
+
+	createMaterial("Rocks")
 
 	currentMaterial.AttachDiffuseMap(engine.TextureControl.GetTexture("col"))
 	currentMaterial.AttachNormalMap(engine.TextureControl.GetTexture("nrm"))
@@ -38,27 +67,17 @@ func initMaterialView() {
 	currentMaterial.AttachRoughnessMap(engine.TextureControl.GetTexture("rough"))
 	currentMaterial.AttachAOMap(engine.TextureControl.GetTexture("ao"))
 
-	materialViewChild.AttachModel(engine.GeometryControl.LoadModel("../rapidengine/assets/obj/cube_smooth.obj", currentMaterial))
-	materialViewChild.AttachModel(geometry.Model{
-		Meshes:    []geometry.Mesh{geometry.NewPlane(200, 200, 100, nil, 1)},
-		Materials: map[int]material.Material{0: currentMaterial},
-	})
-	materialViewChild.X = -100
-	materialViewChild.Z = -100
-	materialViewChild.Model.ComputeTangents()
-	materialViewChild.Model.Meshes[0].ComputeTangents()
-	materialViewChild.AttachMaterial(currentMaterial)
-
 	materialPointLight = lighting.NewPointLight(
 		[]float32{0.1, 0.1, 0.1},
-		[]float32{500, 500, 500},
-		[]float32{1, 1, 1},
+		[]float32{0, 0, 0},
+		[]float32{0, 0, 0},
 		1.0, 0.2, 0.05,
 	)
 
 	materialPointLight.SetPosition([]float32{2, 5, 2})
 
 	engine.LightControl.InstanceLight(materialPointLight, 0)
+
 }
 
 func leftMaterial() {
@@ -67,16 +86,19 @@ func leftMaterial() {
 
 	nk.NkLayoutRowDynamic(ctx, 25, 1)
 	if nk.NkButtonLabel(ctx, "Create Material") == 1 {
-		createMaterial()
+		createMaterial("e")
 	}
 
 	nk.NkLayoutRowDynamic(ctx, topPanelHeight, 1)
 
 	nk.NkLayoutRowDynamic(ctx, 1000, 1)
 	nk.NkGroupBegin(ctx, "", nk.WindowBorder)
-	for matName, _ := range engine.MaterialControl.Materials {
+
+	for _, matName := range allMaterials {
 		nk.NkLayoutRowDynamic(ctx, 25, 1)
-		nk.NkButtonLabel(ctx, matName)
+		if nk.NkButtonLabel(ctx, matName) == 1 {
+			selectMaterial(matName)
+		}
 	}
 	nk.NkGroupEnd(ctx)
 }
@@ -144,11 +166,20 @@ func rightMaterial() {
 	}
 
 	// Roughness
-	nk.NkLayoutRowDynamic(ctx, componentGroupHeight, 1)
+	nk.NkLayoutRowDynamic(ctx, componentGroupHeight*2, 1)
 	if nk.NkGroupBegin(ctx, "Roughness", nk.WindowBorder|nk.WindowTitle|nk.WindowNoScrollbar) > 0 {
 		nk.NkLayoutRow(ctx, nk.Dynamic, componentGroupHeight/2, 2, ratio)
 		nk.NkLabel(ctx, fmt.Sprintf("%v", *currentMaterial.GetRoughnessScalar()), nk.TextAlignCentered|nk.TextAlignMiddle)
 		nk.NkSliderFloat(ctx, 0, currentMaterial.GetRoughnessScalar(), 1, 0.01)
+
+		nk.NkLayoutRow(ctx, nk.Dynamic, componentGroupHeight, 1, ratio)
+		roughORsmooth = nk.NkCheckLabel(ctx, "Rough/Gloss", roughORsmooth)
+		if roughORsmooth == 1 {
+			currentMaterial.SetRoughOrSmooth(true)
+		} else {
+			currentMaterial.SetRoughOrSmooth(false)
+		}
+
 		nk.NkGroupEnd(ctx)
 	}
 
@@ -206,7 +237,21 @@ func rightMaterial() {
 	engine.Renderer.RenderChild(materialViewChild)
 }
 
-func createMaterial() {
-	currentMaterial = engine.MaterialControl.NewPBRMaterial("ummm")
+func createMaterial(name string) {
+	currentMaterial = engine.MaterialControl.NewPBRMaterial(name)
 	materialViewChild.Model.Materials[0] = currentMaterial
+	updateMatList()
+}
+
+func selectMaterial(mat string) {
+	currentMaterial = engine.MaterialControl.Materials[mat].(material.MaterialUI)
+	materialViewChild.Model.Materials[0] = currentMaterial
+}
+
+func updateMatList() {
+	allMaterials = []string{}
+	for matName := range engine.MaterialControl.Materials {
+		allMaterials = append(allMaterials, matName)
+	}
+	sort.Strings(allMaterials)
 }

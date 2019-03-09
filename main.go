@@ -76,15 +76,17 @@ func main() {
 	config.AntiAliasing = true
 	config.PolygonLines = false
 	config.GammaCorrection = true
-	config.ShowFPS = false
+	config.ShowFPS = true
 	engine = cmd.NewEngine(&config, render)
-	engine.Renderer.MainCamera.SetSpeed(60.0 / 120.0)
+	engine.Renderer.MainCamera.SetSpeed(60.0 / 500.0)
 	scene := engine.SceneControl.NewScene("main")
 
 	initMaterialView()
 
 	gl.Init()
 	ctx = nk.NkPlatformInit(engine.Renderer.Window, nk.PlatformInstallCallbacks)
+
+	//engine.Renderer.ResetOpenGL(&config)
 
 	fileBrowser = NewFileBrowser()
 	fileBrowser.Active = false
@@ -122,6 +124,8 @@ func main() {
 	engine.SceneControl.SetCurrentScene(scene)
 	engine.EnableLighting()
 
+	//engine.PostControl.EnablePostProcessing()
+
 	engine.Initialize()
 	engine.StartRenderer()
 	<-engine.Done()
@@ -132,12 +136,20 @@ func render(renderer *cmd.Renderer, inputs *input.Input) {
 		renderer.MainCamera.DefaultControls(inputs)
 	}
 	gfxMain(renderer.Window, ctx, state)
+
+	if inputs.LeftMouseButton {
+		//deltaX := inputs.MouseX - inputs.LastMouseX
+		//deltaY := inputs.MouseY - inputs.LastMouseY
+		//materialViewChild.RX += float32(deltaX) * 0.01
+		//materialViewChild.RY += float32(deltaY) * 0.01
+	}
 }
 
 func gfxMain(win *glfw.Window, ctx *nk.Context, state *State) {
 	nk.NkPlatformNewFrame()
 
 	fileBrowser.Update()
+
 	//   --------------------------------------------------
 	//   Left sidebar
 	//   --------------------------------------------------
