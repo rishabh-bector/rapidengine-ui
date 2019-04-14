@@ -19,6 +19,7 @@ var currentMaterial material.MaterialUI
 var allMaterials []string
 
 var materialViewChild *child.Child3D
+var materialBoxChild *child.Child3D
 var materialPointLight *lighting.PointLight
 
 var col = nk.NkRgb(0, 0, 0)
@@ -29,25 +30,26 @@ var roughORsmooth int32
 func initMaterialView() {
 
 	//   --------------------------------------------------
-	//   View Child
+	//   View Children
 	//   --------------------------------------------------
 
 	materialViewChild = engine.ChildControl.NewChild3D()
-
-	materialViewChild.AttachModel(engine.GeometryControl.LoadModel("../rapidengine/assets/obj/sphere_uv_high.obj", currentMaterial))
-	materialViewChild.AttachModel(geometry.Model{
-		Meshes:    []geometry.Mesh{geometry.NewPlane(20, 20, 100, nil, 1)},
-		Materials: map[int]material.Material{0: currentMaterial},
-	})
-	/*materialViewChild.AttachModel(geometry.Model{
-		Meshes:    []geometry.Mesh{geometry.NewCube()},
-		Materials: map[int]material.Material{0: currentMaterial},
-	})*/
-	//materialViewChild.X = -10
-	//materialViewChild.Z = -10
-	//materialViewChild.Model.ComputeTangents()
+	materialViewChild.AttachModel(geometry.NewModel(geometry.NewPlane(10, 10, 100, nil, 1), currentMaterial))
 	materialViewChild.Model.Meshes[0].ComputeTangents()
-	materialViewChild.AttachMaterial(currentMaterial)
+	materialViewChild.X -= 5
+	materialViewChild.Z -= 5
+
+	boxMat := engine.MaterialControl.NewPBRMaterial("box")
+	engine.TextureControl.NewTexture("./maps/concrete/col.jpg", "concrete_col", "mipmap")
+	engine.TextureControl.NewTexture("./maps/concrete/nrm.jpg", "concrete_nrm", "mipmap")
+	engine.TextureControl.NewTexture("./maps/concrete/rough.jpg", "concrete_rough", "mipmap")
+	boxMat.AlbedoMap = engine.TextureControl.GetTexture("concrete_col")
+	boxMat.NormalMap = engine.TextureControl.GetTexture("concrete_nrm")
+	boxMat.RoughnessMap = engine.TextureControl.GetTexture("concrete_rough")
+
+	materialBoxChild = engine.ChildControl.NewChild3D()
+	materialBoxChild.AttachModel(engine.GeometryControl.LoadModel("../rapidengine/assets/obj/viewer.obj", boxMat))
+	materialBoxChild.Model.Meshes[0].ComputeTangents()
 
 	//   --------------------------------------------------
 	//   Rocks
@@ -69,7 +71,7 @@ func initMaterialView() {
 
 	materialPointLight = lighting.NewPointLight(
 		[]float32{0.1, 0.1, 0.1},
-		[]float32{0, 0, 0},
+		[]float32{0.5, 0.5, 0.5},
 		[]float32{0, 0, 0},
 		1.0, 0.2, 0.05,
 	)
@@ -234,6 +236,7 @@ func rightMaterial() {
 	}
 
 	// Render child
+	engine.Renderer.RenderChild(materialBoxChild)
 	engine.Renderer.RenderChild(materialViewChild)
 }
 

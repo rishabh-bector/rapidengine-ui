@@ -137,11 +137,13 @@ func render(renderer *cmd.Renderer, inputs *input.Input) {
 	}
 	gfxMain(renderer.Window, ctx, state)
 
-	if inputs.LeftMouseButton {
-		//deltaX := inputs.MouseX - inputs.LastMouseX
-		//deltaY := inputs.MouseY - inputs.LastMouseY
-		//materialViewChild.RX += float32(deltaX) * 0.01
-		//materialViewChild.RY += float32(deltaY) * 0.01
+	if inputs.MiddleMouseButton {
+		deltaX := inputs.MouseX - inputs.LastMouseX
+		deltaY := inputs.MouseY - inputs.LastMouseY
+		materialViewChild.RX += float32(deltaX) * 0.01
+		materialViewChild.RY += float32(deltaY) * 0.01
+		materialBoxChild.RX += float32(deltaX) * 0.01
+		materialBoxChild.RY += float32(deltaY) * 0.01
 	}
 }
 
